@@ -7,7 +7,6 @@ import { EffectParams } from '../types';
 const ImplScroll = React.lazy(() => import('./effects/ImplScroll'));
 const ImplNav = React.lazy(() => import('./effects/ImplNav'));
 const ImplCard = React.lazy(() => import('./effects/ImplCard'));
-const ImplButton = React.lazy(() => import('./effects/ImplButton'));
 const ImplForm = React.lazy(() => import('./effects/ImplForm'));
 const ImplLoader = React.lazy(() => import('./effects/ImplLoader'));
 const ImplVisual = React.lazy(() => import('./effects/ImplVisual'));
@@ -96,7 +95,6 @@ export const EffectRenderer = React.memo(({ id }: { id: string }) => {
         if (id.startsWith('scroll-')) return ImplScroll;
         if (id.startsWith('nav-')) return ImplNav;
         if (id.startsWith('card-')) return ImplCard;
-        if (id.startsWith('button-')) return ImplButton;
         if (id.startsWith('form-')) return ImplForm;
         if (id.startsWith('loader-')) return ImplLoader;
         if (id.startsWith('gallery-') || id.startsWith('modal-') || id.startsWith('toast-') || id.startsWith('tooltip-') || id.startsWith('accordion-') || id.startsWith('tabs-') || id.startsWith('dropdown-') || id.startsWith('breadcrumbs-') || id.startsWith('header-') || id.startsWith('footer-') || id.startsWith('sidebar-')) return ImplVisual;

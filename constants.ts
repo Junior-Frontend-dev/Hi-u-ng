@@ -467,7 +467,6 @@ export const EFFECTS_DATA: Omit<EffectItem, 'component'>[] = [
   { id: 'type-adv-mirror-floor', title: '410. Floor Reflection', description: 'Wet floor.', prompt: 'Text with gradient fade reflection below.' },
 
   // --- 🚩 ORPHAN RECOVERY (VIETNAM) ---
-  { id: 'vietnam-map', title: 'VN. Bản Đồ Số', description: 'Interactive Vietnam map visualization.', prompt: 'Create an interactive map of Vietnam with hover effects for regions.' },
 
   // --- 🖋️ ORPHAN RECOVERY (SIGNATURE) ---
   { id: 'signature-ai-bg', title: 'Signature AI BG', description: 'AI-generated abstract background.', prompt: 'Generative AI background patterns.' },
