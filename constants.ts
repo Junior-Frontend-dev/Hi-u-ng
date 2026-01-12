@@ -465,4 +465,58 @@ export const EFFECTS_DATA: Omit<EffectItem, 'component'>[] = [
   { id: 'type-adv-write-on', title: '408. Write On', description: 'Handwriting.', prompt: 'SVG stroke path animating like handwriting.' },
   { id: 'type-adv-glitch-snap', title: '409. Glitch Snap', description: 'RGB Offset.', prompt: 'Text snapping into place with glitch.' },
   { id: 'type-adv-mirror-floor', title: '410. Floor Reflection', description: 'Wet floor.', prompt: 'Text with gradient fade reflection below.' },
+
+  // --- 🚩 ORPHAN RECOVERY (VIETNAM) ---
+  { id: 'vietnam-map', title: 'VN. Bản Đồ Số', description: 'Interactive Vietnam map visualization.', prompt: 'Create an interactive map of Vietnam with hover effects for regions.' },
+
+  // --- 🖋️ ORPHAN RECOVERY (SIGNATURE) ---
+  { id: 'signature-ai-bg', title: 'Signature AI BG', description: 'AI-generated abstract background.', prompt: 'Generative AI background patterns.' },
+  { id: 'signature-emotion', title: 'Signature Emotion', description: 'Emotion-based UI adaption.', prompt: 'UI that changes based on detected mood.' },
+  { id: 'signature-film', title: 'Signature Film', description: 'Cinematic film grain layout.', prompt: 'Website layout with film grain and cinematic typography.' },
+  { id: 'signature-movie', title: 'Signature Movie', description: 'Movie poster style layout.', prompt: 'Layout mimicking a movie poster aesthetic.' },
+  { id: 'signature-narrative', title: 'Signature Narrative', description: 'Storytelling scroll experience.', prompt: 'Scroll-driven narrative experience.' },
+
+  // --- 📝 ORPHAN RECOVERY (TEXT EFFECTS) ---
+  { id: 'text-cinematic', title: 'Text Cinematic', description: 'Movie title text entrance.', prompt: 'Cinematic fade-in text animation.' },
+  { id: 'text-clipping', title: 'Text Clipping', description: 'Text background clipping.', prompt: 'Text with image background clipping.' },
+  { id: 'text-extrusion', title: 'Text Extrusion', description: 'Pseudo-3D text extrusion.', prompt: 'CSS text-shadow layering for 3D effect.' },
+  { id: 'text-glitch-hover', title: 'Text Glitch Hover', description: 'Glitch effect on hover.', prompt: 'Text glitches digitally when hovered.' },
+  { id: 'text-gravity', title: 'Text Gravity', description: 'Letters falling with physics.', prompt: 'Text characters affected by gravity.' },
+  { id: 'text-ink', title: 'Text Ink', description: 'Ink spreading text reveal.', prompt: 'Text revealing like ink spreading on paper.' },
+  { id: 'text-kinetic-story', title: 'Text Kinetic Story', description: 'Moving text narrative.', prompt: 'Kinetic typography storytelling.' },
+  { id: 'text-nav', title: 'Text Nav', description: 'Typographic navigation.', prompt: 'Navigation menu focused on typography.' },
+  { id: 'text-noise', title: 'Text Noise', description: 'Grainy noise text fill.', prompt: 'Text filled with animated noise texture.' },
+  { id: 'text-parallax-layers', title: 'Text Parallax', description: 'Layered text depth.', prompt: 'Multi-layer text parallax on mouse move.' },
+  { id: 'text-particle', title: 'Text Particle', description: 'Text made of particles.', prompt: 'Canvas particles forming text characters.' },
+  { id: 'text-stroke-draw', title: 'Text Stroke Draw', description: 'SVG stroke animation.', prompt: 'Text outline drawing itself.' },
+  { id: 'text-variable-axis', title: 'Text Variable Axis', description: 'Variable font animation.', prompt: 'Animating variable font weight and width.' },
+  { id: 'text-video-mask', title: 'Text Video Mask', description: 'Video playing inside text.', prompt: 'Text used as a mask for a video background.' },
+  { id: 'text-wave', title: 'Text Wave', description: 'Sine wave text motion.', prompt: 'Characters moving in a sine wave pattern.' },
+
+  // --- 🧊 ORPHAN RECOVERY (THREE.JS / WEBGL) ---
+  { id: 'three-ambient', title: 'Three Ambient', description: 'Ambient 3D atmosphere.', prompt: 'Subtle 3D ambient lighting scene.' },
+  { id: 'three-character', title: 'Three Character', description: '3D Character interaction.', prompt: 'Interactive 3D character model.' },
+  { id: 'three-depth-blur', title: 'Three Depth Blur', description: 'Depth of field effect.', prompt: '3D scene with dynamic depth of field.' },
+  { id: 'three-depth-map', title: 'Three Depth Map', description: 'Image depth displacement.', prompt: '2.5D parallax using depth maps.' },
+  { id: 'three-dolly', title: 'Three Dolly', description: 'Dolly zoom effect.', prompt: 'Vertigo effect (dolly zoom) in 3D.' },
+  { id: 'three-env-story', title: 'Three Env Story', description: 'Environmental storytelling.', prompt: '3D environment that tells a story on scroll.' },
+  { id: 'three-explode', title: 'Three Explode', description: 'Model explosion.', prompt: '3D model exploding into parts.' },
+  { id: 'three-floating', title: 'Three Floating', description: 'Floating 3D elements.', prompt: 'Zero-gravity floating 3D objects.' },
+  { id: 'three-fog', title: 'Three Fog', description: 'Volumetric fog.', prompt: 'Dense volumetric fog in a 3D scene.' },
+  { id: 'three-gallery', title: 'Three Gallery', description: '3D Art Gallery.', prompt: 'Walkable 3D art gallery.' },
+  { id: 'three-geometry', title: 'Three Geometry', description: 'Geometric abstraction.', prompt: 'Abstract 3D geometric shapes.' },
+  { id: 'three-glass', title: 'Three Glass', description: 'Glass material refraction.', prompt: 'Realistic glass material and refraction.' },
+  { id: 'three-hologram', title: 'Three Hologram', description: 'Holographic projection.', prompt: 'Sci-fi holographic shader effect.' },
+  { id: 'three-liquid', title: 'Three Liquid', description: 'Fluid simulation.', prompt: 'Interactive 3D liquid metal.' },
+  { id: 'three-mouse-rotate', title: 'Three Mouse Rotate', description: 'Rotate object with mouse.', prompt: '3D object rotating based on mouse position.' },
+  { id: 'three-shader-text', title: 'Three Shader Text', description: 'GLSL text effects.', prompt: 'Text rendered with custom shaders.' },
+  { id: 'three-shadow', title: 'Three Shadow', description: 'Dynamic shadows.', prompt: 'Advanced shadow mapping in 3D.' },
+  { id: 'three-transition', title: 'Three Transition', description: 'Scene transitions.', prompt: 'WebGL transitions between images.' },
+  { id: 'three-tunnel', title: 'Three Tunnel', description: 'Infinite tunnel.', prompt: 'Travel through an infinite 3D tunnel.' },
+  { id: 'three-volumetric', title: 'Three Volumetric', description: 'Volumetric lights.', prompt: 'God rays and volumetric lighting.' },
+
+  // --- 🧩 ORPHAN RECOVERY (OTHER) ---
+  { id: 'type-3d-scene', title: 'Type 3D Scene', description: '3D Typography Scene.', prompt: '3D Typography in a spatial environment.' }, // Mapped to Type3D.tsx via naming convention? Check manual map if needed.
+  { id: 'ux-one-time', title: 'UX One Time', description: 'Single use interaction.', prompt: 'Interaction that only happens once.' },
+  { id: 'coming-soon', title: 'Coming Soon', description: 'Placeholder.', prompt: 'Coming soon placeholder.' },
 ];
