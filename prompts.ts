@@ -49,14 +49,15 @@ export const PROMPTS = {
 - Typography: Massive, centered headings (20vw size) that clip the background or use mix-blend-mode.
 - Animations: When a section snaps into view, animate the text in (fade up + spacing increase).`,
 
-  'progress-indicator': `${BASE_PROMPT_PREFIX} a **Modern Scroll Progress** indicator.
+  'scroll-progress': `${BASE_PROMPT_PREFIX} a **Modern Scroll Progress Master** indicator.
     
 **Design Specs:**
-- Create a long-form typography article.
-- Add two indicators:
-  1. A top gradient line that fills width.
-  2. A floating circular SVG widget in the bottom right that fills the stroke-dasharray.
-- The SVG widget should have a glassmorphism background and update smoothly using RAF.`,
+- Create a high-fidelity long-form typography article in a deep purple dimension.
+- Implement a multi-layer progress tracking system:
+  1. A top gradient glow bar (Indigo-Purple-Pink).
+  2. A floating circular glassmorphism widget with a percentage counter.
+  3. Interactive side progress dots that react to section entry.
+- Visuals: Super-sized headings, cinematic imagery, and 60FPS fluid animations.`,
 
   'scroll-reveal': `${BASE_PROMPT_PREFIX} a **Curtain Wipe Reveal**.
     

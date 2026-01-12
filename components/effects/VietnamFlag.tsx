@@ -7,14 +7,25 @@ export default function VietnamFlag() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.warn('VietnamFlag: Canvas context not available');
+      return;
+    }
 
     let width = canvas.width = canvas.parentElement?.clientWidth || 800;
     let height = canvas.height = canvas.parentElement?.clientHeight || 600;
+    
+    if (width === 0 || height === 0) {
+      width = canvas.width = 800;
+      height = canvas.height = 600;
+    }
+    
     let time = 0;
+    let animationFrameId: number;
+    let isMounted = true;
 
-    // Particles for "Glory" effect (Golden dust)
     const particles: {x: number, y: number, vy: number, alpha: number, size: number}[] = [];
     for(let i=0; i<50; i++) {
         particles.push({
@@ -26,7 +37,44 @@ export default function VietnamFlag() {
         });
     }
 
-    const drawStar = (ctx: CanvasRenderingContext2D, cx: number, cy: number, outerRadius: number, innerRadius: number) => {
+    const render = () => {
+      if (!isMounted) return;
+      
+      ctx.clearRect(0, 0, width, height);
+
+      const amplitude = 15;
+      const wavelength = 0.015;
+      const speed = 0.15;
+      
+      for (let x = 0; x < width; x++) {
+          const wave1 = Math.sin(x * wavelength + time * speed);
+          const wave2 = Math.sin(x * wavelength * 2.5 + time * speed * 1.5) * 0.3;
+          const displacement = (wave1 + wave2) * amplitude;
+          
+          const slope = Math.cos(x * wavelength + time * speed);
+          const lighting = 1 + slope * 0.25; 
+
+          const r = Math.min(255, 218 * lighting);
+          const g = Math.min(255, 37 * lighting);
+          const b = Math.min(255, 29 * lighting);
+
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+          ctx.fillRect(x, 0 + displacement, 1, height);
+      }
+
+      const centerX = width / 2;
+      const centerWave = Math.sin(centerX * wavelength + time * speed) * amplitude;
+      const centerSlope = Math.cos(centerX * wavelength + time * speed);
+      
+      ctx.save();
+      ctx.translate(centerX, height / 2 + centerWave);
+      ctx.rotate(centerSlope * 0.08); 
+      
+      ctx.shadowBlur = 40 + Math.sin(time * 0.1) * 20;
+      ctx.shadowColor = 'rgba(255, 255, 0, 0.6)';
+      
+      ctx.fillStyle = '#FFFF00';
+      const drawStar = (cx: number, cy: number, outerRadius: number, innerRadius: number) => {
         const spikes = 5;
         let rot = Math.PI / 2 * 3;
         let x = cx;
@@ -48,108 +96,54 @@ export default function VietnamFlag() {
         }
         ctx.lineTo(cx, cy - outerRadius);
         ctx.closePath();
-    };
+      };
+      drawStar(0, 0, 120, 48);
+      ctx.fill();
+      ctx.restore();
 
-    const render = () => {
-        ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+          p.y -= p.vy;
+          if (p.y < 0) {
+              p.y = height;
+              p.x = Math.random() * width;
+          }
+          
+          const pX = p.x + Math.sin(time * 0.05 + p.y * 0.01) * 20;
+          const pAlpha = p.alpha * (0.5 + Math.sin(time * 0.1 + p.y * 0.01) * 0.5);
+          
+          ctx.fillStyle = `rgba(255, 215, 0, ${pAlpha})`;
+          ctx.beginPath();
+          ctx.arc(pX, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+      });
 
-        // --- 1. Flag Surface Physics (Sine Wave Mesh) ---
-        // Amplitude and frequency for the "wind"
-        const amplitude = 15;
-        const wavelength = 0.015;
-        const speed = 0.15;
-        
-        for (let x = 0; x < width; x++) {
-            // Complex wave: Main wave + secondary ripples for realism
-            const wave1 = Math.sin(x * wavelength + time * speed);
-            const wave2 = Math.sin(x * wavelength * 2.5 + time * speed * 1.5) * 0.3;
-            const displacement = (wave1 + wave2) * amplitude;
-            
-            // Lighting based on slope (derivative of sine is cosine)
-            // Slope determines if part of the cloth is facing light source (top-left)
-            const slope = Math.cos(x * wavelength + time * speed);
-            
-            // Shadow intensity (-1 to 1) mapped to brightness multiplier
-            const lighting = 1 + slope * 0.25; 
+      const grad = ctx.createRadialGradient(width/2, height/2, width/4, width/2, height/2, width);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,width,height);
 
-            // Red Background color modulated by lighting
-            // Base Red: #DA251D (RGB: 218, 37, 29)
-            const r = Math.min(255, 218 * lighting);
-            const g = Math.min(255, 37 * lighting);
-            const b = Math.min(255, 29 * lighting);
-
-            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            
-            // Draw vertical slice
-            // Add slight Y skew based on X to simulate perspective/wind shear
-            // This creates the "flapping" visual
-            ctx.fillRect(x, 0 + displacement, 1, height);
-        }
-
-        // --- 2. The Star (Deformed by wind) ---
-        // To properly deform the star with the flag, we calculate its center position relative to the wave
-        const centerX = width / 2;
-        // Calculate the wave displacement at the center of the screen
-        const centerWave = Math.sin(centerX * wavelength + time * speed) * amplitude;
-        const centerSlope = Math.cos(centerX * wavelength + time * speed);
-        
-        ctx.save();
-        // Move to center, applying vertical wave displacement
-        ctx.translate(centerX, height / 2 + centerWave);
-        // Rotate slightly based on wave slope to simulate cloth tilting
-        ctx.rotate(centerSlope * 0.08); 
-        
-        // Star Glow / Bloom
-        ctx.shadowBlur = 40 + Math.sin(time * 0.1) * 20;
-        ctx.shadowColor = 'rgba(255, 255, 0, 0.6)';
-        
-        ctx.fillStyle = '#FFFF00';
-        // Draw standard star shape
-        drawStar(ctx, 0, 0, 120, 48);
-        ctx.fill();
-        ctx.restore();
-
-        // --- 3. Glory Particles (Golden dust rising) ---
-        // Simulates "Hào khí" (Aura)
-        particles.forEach(p => {
-            p.y -= p.vy; // Move up
-            if (p.y < 0) {
-                p.y = height;
-                p.x = Math.random() * width;
-            }
-            
-            // Wiggle movement
-            const pX = p.x + Math.sin(time * 0.05 + p.y * 0.01) * 20;
-            const pAlpha = p.alpha * (0.5 + Math.sin(time * 0.1 + p.y * 0.01) * 0.5); // Twinkle
-            
-            ctx.fillStyle = `rgba(255, 215, 0, ${pAlpha})`;
-            ctx.beginPath();
-            ctx.arc(pX, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // --- 4. Cinematic Vignette & Noise Overlay ---
-        // Adds depth and film look
-        const grad = ctx.createRadialGradient(width/2, height/2, width/4, width/2, height/2, width);
-        grad.addColorStop(0, 'rgba(0,0,0,0)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.5)'); // Dark corners
-        ctx.fillStyle = grad;
-        ctx.fillRect(0,0,width,height);
-
-        time += 1;
-        requestAnimationFrame(render);
+      time += 1;
+      animationFrameId = requestAnimationFrame(render);
     };
 
     const handleResize = () => {
-        width = canvas.width = canvas.parentElement?.clientWidth || 300;
-        height = canvas.height = canvas.parentElement?.clientHeight || 300;
+        if (!canvas.parentElement) return;
+        width = canvas.width = canvas.parentElement.clientWidth || window.innerWidth;
+        height = canvas.height = canvas.parentElement.clientHeight || window.innerHeight;
+        if (width === 0 || height === 0) {
+            width = canvas.width = 800;
+            height = canvas.height = 600;
+        }
     };
     window.addEventListener('resize', handleResize);
-    const raf = requestAnimationFrame(render);
+    handleResize();
+    animationFrameId = requestAnimationFrame(render);
 
     return () => {
+        isMounted = false;
         window.removeEventListener('resize', handleResize);
-        cancelAnimationFrame(raf);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, []);
 

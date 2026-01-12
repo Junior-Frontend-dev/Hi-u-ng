@@ -13,7 +13,7 @@ export const EFFECTS_DATA: Omit<EffectItem, 'component'>[] = [
   { id: 'horizontal-scroll', title: '03. Horizontal Scroll', description: 'A sticky horizontal gallery driven by vertical scroll.', prompt: PROMPTS['horizontal-scroll'] },
   { id: 'scroll-trigger', title: '04. Scroll Trigger', description: 'Elements that flow into view with staggered elegance.', prompt: PROMPTS['scroll-trigger'] },
   { id: 'scroll-snap', title: '05. Scroll Snap', description: 'Full-screen immersive sections with snap points.', prompt: PROMPTS['scroll-snap'] },
-  { id: 'progress-indicator', title: '06. Scroll Progress', description: 'A minimal, non-intrusive progress visualization.', prompt: PROMPTS['progress-indicator'] },
+  { id: 'scroll-progress', title: '06. Scroll Progress', description: 'A minimal, non-intrusive progress visualization.', prompt: PROMPTS['scroll-progress'] },
   { id: 'scroll-reveal', title: '07. Scroll Reveal', description: 'A curtain-wipe effect revealing content underneath.', prompt: PROMPTS['scroll-reveal'] },
   { id: 'scroll-blur', title: '08. Scroll Blur', description: 'Dynamic focus shifting based on scroll position.', prompt: PROMPTS['scroll-blur'] },
   { id: 'scroll-scale', title: '09. Scroll Scale', description: 'A portal effect where the hero shrinks into a card.', prompt: PROMPTS['scroll-scale'] },
@@ -206,6 +206,7 @@ export const EFFECTS_DATA: Omit<EffectItem, 'component'>[] = [
   { id: 'nav-liquid', title: '178. Liquid Tab', description: 'Gooey effect between tabs.', prompt: 'SVG goo filter applied to moving tab indicator.' },
   { id: 'nav-magnetic', title: '179. Magnetic Link', description: 'Link sticks to cursor.', prompt: 'Navigation links that magnetically pull towards the mouse cursor.' },
   { id: 'nav-indicator', title: '180. Scroll Indicator', description: 'Progress bar in nav.', prompt: 'A progress bar integrated into the navigation header.' },
+  { id: 'nav-hamburger', title: '181. Hamburger Morph', description: 'Fluid morphing menu.', prompt: 'A hamburger menu button that morphs into a close icon with a fluid, organic animation, revealing a fullscreen menu.' },
 
   // --- CARD EFFECTS (181-190) ---
   { id: 'card-flip', title: '181. 3D Flip', description: 'Card flips to show back.', prompt: 'A card that rotates 180 degrees on Y-axis to reveal content on the back.' },

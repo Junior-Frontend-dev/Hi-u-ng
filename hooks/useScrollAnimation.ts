@@ -11,29 +11,25 @@ export function useScrollAnimation(options: { speed?: number } = {}) {
     if (!el) return;
 
     let animationFrameId: number;
+    let isMounted = true;
 
     const update = () => {
-      if (!el) return;
+      if (!isMounted || !el) return;
 
       if (isAutoScrolling) {
-        // Auto scroll
         el.scrollTop += speed;
-        // Loop back to top
         if (Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight) {
           el.scrollTop = 0;
         }
       }
 
-      // Update CSS variables for high-performance animations
       const scrollTop = el.scrollTop;
       const scrollHeight = el.scrollHeight - el.clientHeight;
       const progress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
       
-      // Calculate Velocity
       const velocity = scrollTop - lastScrollTop.current;
       lastScrollTop.current = scrollTop;
 
-      // Batch style updates
       el.style.setProperty('--scroll-y', `${scrollTop}px`);
       el.style.setProperty('--scroll-y-val', `${scrollTop}`);
       el.style.setProperty('--scroll-percent', `${progress}`);
@@ -44,7 +40,10 @@ export function useScrollAnimation(options: { speed?: number } = {}) {
 
     animationFrameId = requestAnimationFrame(update);
 
-    return () => cancelAnimationFrame(animationFrameId);
+    return () => {
+      isMounted = false;
+      cancelAnimationFrame(animationFrameId);
+    };
   }, [isAutoScrolling, speed]);
 
   return { 

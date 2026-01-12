@@ -1,12 +1,19 @@
-import React, { ReactNode } from 'react';
-
 export interface EffectItem {
   id: string;
   title: string;
   description: string;
-  component: ReactNode;
   prompt: string;
-  icon?: ReactNode;
 }
 
-export type ScrollEvent = React.UIEvent<HTMLDivElement>;
+export interface EffectParams {
+  speed: number;
+  intensity: number;
+  color: string;
+}
+
+export interface StoreState {
+  favorites: string[];
+  toggleFavorite: (id: string) => void;
+  params: EffectParams;
+  updateParams: (newParams: Partial<EffectParams>) => void;
+}

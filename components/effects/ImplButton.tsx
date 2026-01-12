@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DemoContainer } from '../DemoContainer';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Zap, Sparkles, Send, Fingerprint } from 'lucide-react';
 
 export default function ImplButton({ variant }: { variant: string }) {
   const [loading, setLoading] = useState(false);
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([]);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (variant === 'button-loading') {
@@ -14,106 +15,169 @@ export default function ImplButton({ variant }: { variant: string }) {
     if (variant === 'button-ripple-out') {
       const rect = e.currentTarget.getBoundingClientRect();
       setRipples(prev => [...prev, { x: e.clientX - rect.left, y: e.clientY - rect.top, id: Date.now() }]);
-      setTimeout(() => setRipples(prev => prev.slice(1)), 600);
+      setTimeout(() => setRipples(prev => prev.slice(1)), 1000);
     }
   };
 
-  const baseClass = "relative px-10 py-4 font-bold text-white transition-all duration-300 group overflow-hidden cursor-pointer";
+  // --- MAGNETIC EFFECT LOGIC ---
+  useEffect(() => {
+    if (variant !== 'button-magnetic') return;
+    const btn = btnRef.current;
+    if (!btn) return;
 
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - (rect.left + rect.width / 2);
+      const y = e.clientY - (rect.top + rect.height / 2);
+      
+      // Calculate distance
+      const distance = Math.sqrt(x*x + y*y);
+      const hoverArea = 150;
+
+      if (distance < hoverArea) {
+         btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+         btn.style.transition = 'transform 0.1s ease-out';
+      } else {
+         btn.style.transform = 'translate(0px, 0px)';
+         btn.style.transition = 'transform 0.5s ease-out';
+      }
+    };
+
+    const handleMouseLeave = () => {
+      btn.style.transform = 'translate(0px, 0px)';
+      btn.style.transition = 'transform 0.5s ease-out';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    btn.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        btn?.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [variant]);
+
+
+  const baseClass = "relative px-8 py-4 font-bold text-white transition-all duration-300 group overflow-hidden cursor-pointer tracking-wider flex items-center justify-center gap-3";
+
+  // 1. PULSE (Heartbeat Glow)
   const renderButtonPulse = () => (
-    <button className={`${baseClass} bg-blue-600 rounded-full animate-pulse hover:animate-none hover:bg-blue-500`}>
-      Pulsing Button
+    <button className={`${baseClass} rounded-full bg-rose-600 shadow-[0_0_0_0_rgba(225,29,72,0.7)] animate-[pulse-ring_2s_infinite]`}>
+      <Zap className="fill-white" size={18} />
+      <span>LIVE ACTION</span>
+      <style>{`
+        @keyframes pulse-ring {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+      `}</style>
     </button>
   );
 
+  // 2. SHINE (Glassy Sweep)
   const renderButtonShine = () => (
-    <button className={`${baseClass} bg-green-600 rounded-lg`}>
-      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg]" />
-      <span className="relative z-10">Shine Effect</span>
+    <button className={`${baseClass} rounded-xl bg-black border border-white/10 backdrop-blur-md overflow-hidden`}>
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-700 ease-in-out skew-x-[-20deg] w-[200%]" />
+      <Sparkles size={16} className="text-yellow-400" />
+      <span className="relative z-10 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">PREMIUM SHINE</span>
     </button>
   );
 
+  // 3. RIPPLE (Material Ink)
   const renderButtonRippleOut = () => (
     <button 
       onClick={handleClick}
-      className={`${baseClass} bg-purple-600 rounded-full`}
+      className={`${baseClass} bg-indigo-600 rounded-lg shadow-lg hover:shadow-indigo-500/50 active:scale-95`}
     >
       {ripples.map(ripple => (
-        <div
+        <span
           key={ripple.id}
-          className="absolute rounded-full bg-white/30 pointer-events-none animate-ping"
+          className="absolute rounded-full bg-white/30 pointer-events-none animate-[ripple_0.6s_linear]"
           style={{
-            left: ripple.x - 20,
-            top: ripple.y - 20,
-            width: 40,
-            height: 40,
+            left: ripple.x,
+            top: ripple.y,
+            width: 0,
+            height: 0,
+            transform: 'translate(-50%, -50%)'
           }}
         />
       ))}
-      <span className="relative z-10">Ripple Out</span>
+      <Fingerprint size={18} />
+      <span className="relative z-10">CLICK ME</span>
+      <style>{`
+        @keyframes ripple {
+          to { width: 400px; height: 400px; opacity: 0; }
+        }
+      `}</style>
     </button>
   );
 
+  // 4. MAGNETIC (Physics)
   const renderButtonMagnetic = () => (
-    <button className={`${baseClass} bg-red-600 rounded-xl hover:scale-110 hover:-translate-y-1`}>
-      Magnetic
+    <button ref={btnRef} className={`${baseClass} bg-black border border-white/20 rounded-full px-12 py-6 hover:bg-white hover:text-black transition-colors duration-300`}>
+      <span className="pointer-events-none text-lg">MAGNETIC</span>
     </button>
   );
 
+  // 5. MORPH (Button -> Loader)
   const renderButtonMorph = () => (
     <button 
       onClick={() => setLoading(!loading)}
-      className={`${baseClass} bg-orange-600 rounded-xl transition-all duration-500 ${loading ? 'w-14 h-14 rounded-full' : ''}`}
+      className={`${baseClass} bg-emerald-600 rounded-full transition-all duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] ${loading ? 'w-14 h-14 p-0 bg-white text-emerald-600' : 'w-48'}`}
     >
       {loading ? (
-        <Loader2 className="animate-spin mx-auto" />
+        <Loader2 className="animate-spin" />
       ) : (
-        <span>Morph to Loader</span>
+        <span className="whitespace-nowrap">SUBMIT ORDER</span>
       )}
     </button>
   );
 
+  // 6. LIQUID (Fill Up)
   const renderButtonLiquid = () => (
-    <button className={`${baseClass} bg-indigo-600 rounded-full`}>
-      <div className="absolute inset-0 bg-blue-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 rounded-full" />
-      <span className="relative z-10">Liquid Fill</span>
+    <button className={`${baseClass} bg-transparent border border-blue-500 text-blue-500 rounded-full hover:text-white`}>
+      <div className="absolute inset-0 w-full h-[200%] bg-blue-500 top-[100%] left-0 rounded-[50%] transition-all duration-500 ease-in-out group-hover:top-[-40%] group-hover:rounded-none" />
+      <span className="relative z-10 font-bold tracking-widest">LIQUID FILL</span>
     </button>
   );
 
+  // 7. NEON (Cyberpunk Glow)
   const renderButtonNeon = () => (
-    <button className={`${baseClass} border-2 border-purple-500 text-purple-500 shadow-[0_0_10px_#a855f7] hover:shadow-[0_0_30px_#a855f7] hover:bg-purple-500 hover:text-white rounded-lg`}>
-      Neon Glow
+    <button className={`${baseClass} bg-transparent border-2 border-[#ff00ff] text-[#ff00ff] rounded-lg shadow-[0_0_10px_#ff00ff,inset_0_0_10px_#ff00ff] hover:shadow-[0_0_20px_#ff00ff,inset_0_0_20px_#ff00ff] hover:bg-[#ff00ff] hover:text-white transition-all duration-300 font-mono`}>
+      CYBER_NEON
     </button>
   );
 
+  // 8. GHOST (Minimalist)
   const renderButtonGhost = () => (
-    <button className={`${baseClass} border border-white/50 rounded-full hover:bg-white hover:text-black`}>
-      Ghost Button
+    <button className={`${baseClass} bg-transparent text-white border border-white/30 rounded-full hover:border-white hover:bg-white/10 backdrop-blur-sm`}>
+      <span className="opacity-70 group-hover:opacity-100 transition-opacity">GHOST UI</span>
     </button>
   );
 
+  // 9. ARROW (Slide Reveal)
   const renderButtonArrow = () => (
-    <button className={`${baseClass} bg-gray-800 rounded-lg`}>
-      <span className="flex items-center gap-2">
-        Learn More
-        <ArrowRight className="group-hover:translate-x-2 transition-transform" />
-      </span>
+    <button className={`${baseClass} bg-white text-black rounded-full pl-8 pr-6 hover:pr-8 hover:pl-6 transition-all duration-300`}>
+      <span className="font-bold">EXPLORE</span>
+      <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-blue-600 group-hover:rotate-45">
+        <ArrowRight size={14} />
+      </div>
     </button>
   );
 
+  // 10. LOADING (Inline State)
   const renderButtonLoading = () => (
     <button 
       onClick={handleClick}
-      className={`${baseClass} bg-blue-600 rounded-lg`}
+      className={`${baseClass} bg-slate-800 rounded-lg overflow-hidden border border-slate-700`}
+      disabled={loading}
     >
-      <span className={`relative z-10 flex items-center gap-2 ${loading ? 'opacity-0' : 'opacity-100'}`}>
-        Loading State
+      <div className={`absolute inset-0 bg-blue-600 transition-transform duration-[2000ms] ease-linear ${loading ? 'translate-x-0' : '-translate-x-full'}`} />
+      <span className={`relative z-10 flex items-center gap-2 ${loading ? 'opacity-100' : 'opacity-100'}`}>
+        {loading ? 'PROCESSING...' : 'START UPLOAD'}
+        {loading && <Loader2 className="animate-spin" size={16} />}
       </span>
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 className="animate-spin" />
-        </div>
-      )}
     </button>
   );
 
@@ -134,9 +198,15 @@ export default function ImplButton({ variant }: { variant: string }) {
   };
 
   return (
-    <DemoContainer>
-      <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+    <DemoContainer className="bg-[#050505] flex items-center justify-center p-8 overflow-hidden relative">
+      {/* Dynamic Background for Context */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(50,50,50,0.4)_0%,black_100%)] pointer-events-none" />
+      
+      <div className="relative z-10 flex flex-col items-center gap-8">
         {renderContent()}
+        <div className="text-white/20 font-mono text-[10px] tracking-[0.3em] uppercase mt-12">
+            Interactive Component
+        </div>
       </div>
     </DemoContainer>
   );

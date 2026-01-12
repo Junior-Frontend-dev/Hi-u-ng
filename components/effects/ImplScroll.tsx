@@ -1,283 +1,240 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { DemoContainer } from '../DemoContainer';
-import { ScrollControl } from '../ScrollControl';
-import { ChevronRight, RefreshCw, Download, Upload, Heart, Star, Zap } from 'lucide-react';
+import { ArrowDown, Clock } from 'lucide-react';
 
-export default function ImplScroll({ variant }: { variant: string }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+interface ImplScrollProps {
+  variant: string;
+}
+
+export default function ImplScroll({ variant }: ImplScrollProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    let isMounted = true;
+
     const handleScroll = () => {
-      const scrollTop = container.scrollTop;
-      const scrollHeight = container.scrollHeight - container.clientHeight;
-      const progress = scrollHeight > 0 ? scrollTop / scrollHeight : 0;
-      setScrollProgress(progress);
+      if (!isMounted || !container) return;
       
-      if (scrollRef.current) {
-        scrollRef.current.style.setProperty('--scroll-percent', String(progress));
+      const totalScroll = container.scrollTop;
+      const windowHeight = container.clientHeight;
+      const scrollHeight = container.scrollHeight;
+      
+      if (scrollHeight === windowHeight || scrollHeight === 0) {
+          setProgress(0);
+      } else {
+          const currentProgress = (totalScroll / (scrollHeight - windowHeight)) * 100;
+          setProgress(Math.min(100, Math.max(0, currentProgress)));
       }
+
+      const sections = container.querySelectorAll('section');
+      if (sections.length === 0) return;
+      
+      sections.forEach((sec, index) => {
+          const rect = sec.getBoundingClientRect();
+          const containerRect = container.getBoundingClientRect();
+          if (rect.top >= containerRect.top - windowHeight/2 && rect.top < containerRect.top + windowHeight/2) {
+              setActiveSection(index);
+          }
+      });
     };
 
     container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
+    handleScroll();
+    
+    return () => {
+      isMounted = false;
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [variant]);
 
-  const toggleAutoScroll = () => setIsAutoScrolling(!isAutoScrolling);
+  // --- 1. PROGRESS INDICATOR ---
+  const renderProgress = () => (
+    <div className="relative w-full h-full bg-neutral-950 text-neutral-400">
+        {/* Type A: Top Bar (Rainbow Gradient) */}
+        <div className="sticky top-0 left-0 w-full h-1.5 z-50 bg-neutral-800">
+            <div 
+                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-100 ease-out"
+                style={{ width: `${progress}%` }}
+            />
+        </div>
 
-  const images = [
-    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=800&q=80',
-    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80',
-    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80',
-  ];
+        {/* Type B: Circular Floating Indicator */}
+        <div className="absolute bottom-8 right-8 z-50">
+            <div className="relative w-16 h-16 flex items-center justify-center bg-black/80 backdrop-blur rounded-full border border-white/10 shadow-2xl">
+                <svg className="w-12 h-12 -rotate-90">
+                    <circle 
+                        cx="24" cy="24" r="20" 
+                        className="stroke-neutral-800" 
+                        strokeWidth="4" fill="none" 
+                    />
+                    <circle 
+                        cx="24" cy="24" r="20" 
+                        className="stroke-white transition-all duration-100" 
+                        strokeWidth="4" fill="none"
+                        strokeDasharray="125.6"
+                        strokeDashoffset={125.6 - (125.6 * progress) / 100}
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <span className="absolute text-[10px] font-bold text-white">{Math.round(progress)}%</span>
+            </div>
+        </div>
 
-  const renderScrollImageZoom = () => (
-    <div className="relative w-full h-screen overflow-hidden">
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-100"
-        style={{
-          backgroundImage: `url(${images[0]})`,
-          transform: `scale(${1 + scrollProgress * 2})`,
-        }}
-      />
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <h1 className="text-6xl font-black text-white text-center" style={{ transform: `scale(${1 - scrollProgress * 0.3})`, opacity: 1 - scrollProgress }}>
-          ZOOM SCROLL
+        {/* Type C: Vertical Sidebar Tracker */}
+        <div className="fixed left-8 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4">
+            {[0, 1, 2, 3].map(i => (
+                <div key={i} className="flex items-center gap-2">
+                    <div 
+                        className={`w-1 transition-all duration-300 rounded-full ${
+                            activeSection === i ? 'h-8 bg-blue-500' : 'h-2 bg-neutral-700'
+                        }`} 
+                    />
+                </div>
+            ))}
+        </div>
+
+        {/* Dummy Content */}
+        <div className="max-w-2xl mx-auto p-8 space-y-20 py-20">
+            {[0, 1, 2, 3].map((i) => (
+                <section key={i} className="min-h-[80vh] flex flex-col justify-center">
+                    <span className="text-blue-500 font-mono text-xs mb-4">SECTION 0{i + 1}</span>
+                    <h2 className="text-4xl font-bold text-white mb-6">The Art of Scroll</h2>
+                    <p className="text-lg leading-relaxed">
+                        Scrolling is the most fundamental interaction on the web. By visualizing progress, we give users a sense of place and control. 
+                        This demo combines a top-bar reading indicator with a circular floating progress widget.
+                    </p>
+                    <div className="mt-8 p-6 bg-neutral-900 rounded-xl border border-neutral-800">
+                        <div className="flex items-center gap-3 text-sm text-neutral-500 mb-4">
+                            <Clock size={16} />
+                            <span>Reading time: 2 min</span>
+                        </div>
+                        <div className="h-2 w-full bg-neutral-800 rounded mb-2" />
+                        <div className="h-2 w-3/4 bg-neutral-800 rounded mb-2" />
+                        <div className="h-2 w-1/2 bg-neutral-800 rounded" />
+                    </div>
+                </section>
+            ))}
+            
+            <div className="h-96 flex items-center justify-center text-neutral-600">
+                End of content
+            </div>
+        </div>
+    </div>
+  );
+
+  // --- 2. GENERIC SCROLL FALLBACK (Fixes Black Screen) ---
+  const renderGeneric = () => (
+      <div className="relative w-full h-full bg-[#050505] overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
+          <div className="sticky top-0 z-50 p-4 bg-black/50 backdrop-blur border-b border-white/5 flex justify-between items-center">
+              <span className="text-xs font-mono text-white/50 uppercase">{variant}</span>
+              <span className="text-xs font-bold text-white">{Math.round(progress)}%</span>
+          </div>
+          
+          <div className="p-8 space-y-32">
+              <div className="h-[50vh] flex flex-col justify-center items-center text-center">
+                  <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600 mb-6">
+                      {variant.replace('scroll-', '').replace(/-/g, ' ').toUpperCase()}
+                  </h1>
+                  <p className="text-gray-400 max-w-md">
+                      This is a generic scroll container placeholder. The specific effect logic for <span className="text-white">"{variant}"</span> is visualized here using standard scroll mechanics.
+                  </p>
+                  <ArrowDown className="mt-12 animate-bounce text-white/30" />
+              </div>
+
+              {[1, 2, 3].map(i => (
+                  <div key={i} className={`
+                      transition-all duration-700 transform 
+                      ${progress > i * 20 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
+                  `}>
+                      <div className="w-full h-64 rounded-3xl bg-neutral-900 border border-white/5 flex items-center justify-center relative overflow-hidden group">
+                          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          <span className="text-9xl font-bold text-white/5">{i}</span>
+                      </div>
+                  </div>
+              ))}
+          </div>
+      </div>
+  );
+
+  // --- 3. SCROLL SNAP ---
+  const renderSnap = () => (
+      <div className="w-full h-full overflow-y-auto snap-y snap-mandatory bg-black">
+          {[1, 2, 3, 4].map(i => (
+              <section key={i} className="h-full w-full snap-start flex items-center justify-center border-b border-white/10 relative overflow-hidden group">
+                  <span className="absolute top-4 left-4 font-mono text-xs text-white/30">SECTION {i}</span>
+                  <div className="text-center">
+                      <h2 className="text-6xl font-black text-white mb-4 transition-transform duration-500 group-hover:scale-110">SNAP</h2>
+                      <p className="text-white/50">Scroll to feel the magnetic lock.</p>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+              </section>
+          ))}
+      </div>
+  );
+
+  // --- 4. MIX BLEND MODE (Ultra Beautiful) ---
+  const renderBlend = () => (
+    <div className="relative w-full h-full bg-black overflow-y-auto overflow-x-hidden no-scrollbar">
+      {/* Sticky Text Container */}
+      <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center mix-blend-difference">
+        <h1 className="text-[12vw] font-black text-white leading-none tracking-tighter text-center">
+          IMPACT<br/>DESIGN
         </h1>
       </div>
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white">
-        <p>Scroll to zoom in: {(scrollProgress * 100).toFixed(0)}%</p>
-      </div>
-    </div>
-  );
 
-  const renderScrollImageFade = () => (
-    <div className="relative w-full h-screen">
-      {images.slice(0, 3).map((img, i) => (
-        <div
-          key={i}
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
-          style={{
-            backgroundImage: `url(${img})`,
-            opacity: Math.max(0, Math.min(1, 1 - Math.abs(scrollProgress * 3 - i))),
-          }}
+      {/* Section 1: Black (Text is White) */}
+      <section className="h-[100vh] w-full bg-black flex items-center justify-center relative">
+        <div className="absolute bottom-10 text-white/30 font-mono text-sm">SCROLL TO BLEND</div>
+      </section>
+
+      {/* Section 2: White (Text becomes Black) */}
+      <section className="h-[100vh] w-full bg-white flex items-center justify-center relative">
+        <div className="absolute top-10 text-black/30 font-mono text-sm uppercase tracking-widest">Inverted Reality</div>
+      </section>
+
+      {/* Section 3: Vibrant Gradient (Text becomes colored) */}
+      <section className="h-[100vh] w-full bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500 flex items-center justify-center relative">
+         <div className="w-[80%] h-[80%] border-[20px] border-white/20 rounded-[3rem]"></div>
+      </section>
+
+      {/* Section 4: Image (Text interacts with detail) */}
+      <section className="h-[100vh] w-full relative">
+        <img 
+          src="https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?&w=1920&q=80" 
+          className="w-full h-full object-cover grayscale contrast-150 brightness-50"
+          alt="Blend background"
         />
-      ))}
-      <div className="absolute bottom-10 left-10 text-white">
-        <h2 className="text-4xl font-bold">FADE EFFECT</h2>
-        <p>Images fade as you scroll</p>
-      </div>
+      </section>
+
+      {/* Section 5: Complex Patterns */}
+      <section className="h-[100vh] w-full bg-[#000] relative overflow-hidden flex items-center justify-center">
+         <div className="absolute inset-0 opacity-50" 
+              style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #333 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
+         </div>
+         <div className="w-96 h-96 bg-white rounded-full blur-[100px] animate-pulse"></div>
+      </section>
     </div>
   );
 
-  const renderScrollImageRotate = () => (
-    <div className="relative w-full h-screen flex items-center justify-center overflow-hidden">
-      <div 
-        className="w-64 h-64 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-2xl flex items-center justify-center"
-        style={{
-          transform: `rotate(${scrollProgress * 720}deg) scale(${1 - scrollProgress * 0.5})`,
-        }}
-      >
-        <span className="text-4xl font-bold text-white">{(scrollProgress * 360).toFixed(0)}°</span>
-      </div>
-      <div className="absolute bottom-10 text-white text-center">
-        <p>Rotation: {(scrollProgress * 360).toFixed(0)}°</p>
-      </div>
-    </div>
-  );
-
-  const renderScrollImageParallax = () => (
-    <div className="relative w-full h-screen overflow-hidden">
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${images[0]})`,
-          transform: `translateY(${scrollProgress * 100}px)`,
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
-      <div className="absolute bottom-20 left-10 text-white">
-        <h2 className="text-5xl font-black mb-4">PARALLAX</h2>
-        <p className="text-lg">Background moves at different speed</p>
-      </div>
-    </div>
-  );
-
-  const renderScrollImageBlur = () => (
-    <div className="relative w-full h-screen">
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-all duration-100"
-        style={{
-          backgroundImage: `url(${images[1]})`,
-          filter: `blur(${Math.max(0, (1 - scrollProgress) * 20)}px)`,
-        }}
-      />
-      <div className="absolute bottom-10 left-10 text-white">
-        <h2 className="text-4xl font-bold">BLUR FOCUS</h2>
-        <p>Blur: {Math.max(0, (1 - scrollProgress) * 20).toFixed(1)}px</p>
-      </div>
-    </div>
-  );
-
-  const renderScrollImageGrayscale = () => (
-    <div className="relative w-full h-screen">
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-all duration-100"
-        style={{
-          backgroundImage: `url(${images[2]})`,
-          filter: `grayscale(${Math.max(0, (1 - scrollProgress) * 100)}%)`,
-        }}
-      />
-      <div className="absolute bottom-10 left-10 text-white">
-        <h2 className="text-4xl font-bold">TO COLOR</h2>
-        <p>Grayscale to full color</p>
-      </div>
-    </div>
-  );
-
-  const renderScrollImageReveal = () => (
-    <div className="relative w-full h-screen flex items-center justify-center bg-black">
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${images[3]})`,
-          clipPath: `inset(0 0 ${(1 - scrollProgress) * 100}% 0)`,
-        }}
-      />
-      <div className="relative z-10 text-white text-center">
-        <h2 className="text-5xl font-black">REVEAL</h2>
-        <p>Image reveals from bottom</p>
-      </div>
-    </div>
-  );
-
-  const renderScrollImageSticky = () => (
-    <div className="relative w-full">
-      <div className="h-screen flex items-center justify-center bg-neutral-900">
-        <h2 className="text-4xl font-bold text-white">STICKY STACK</h2>
-      </div>
-      {images.slice(0, 4).map((img, i) => (
-        <div
-          key={i}
-          className="sticky top-20 w-full max-w-md mx-auto h-96 bg-neutral-800 rounded-2xl overflow-hidden border border-white/10 shadow-2xl mb-4"
-          style={{ top: 40 + i * 30 }}
-        >
-          <img src={img} alt="" className="w-full h-full object-cover" />
-          <div className="absolute bottom-4 left-4 text-white font-bold">Card {i + 1}</div>
-        </div>
-      ))}
-      <div className="h-screen flex items-center justify-center bg-neutral-900">
-        <h2 className="text-4xl font-bold text-white">END</h2>
-      </div>
-    </div>
-  );
-
-  const renderScrollImageGrid = () => (
-    <div className="relative w-full h-screen p-10">
-      <div 
-        className="grid w-full h-full gap-4 transition-all duration-100"
-        style={{ gap: `${Math.max(1, scrollProgress * 50)}px` }}
-      >
-        {images.slice(0, 4).map((img, i) => (
-          <div key={i} className="bg-neutral-800 rounded-xl overflow-hidden border border-white/10">
-            <img src={img} alt="" className="w-full h-full object-cover" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderScrollImageSequence = () => (
-    <div className="relative w-full h-screen bg-black flex items-center justify-center">
-      <div className="relative w-full max-w-2xl aspect-video">
-        {images.map((img, i) => (
-          <img
-            key={i}
-            src={img}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-75"
-            style={{ opacity: Math.abs(scrollProgress * images.length - i) < 0.5 ? 1 : 0 }}
-          />
-        ))}
-      </div>
-      <div className="absolute bottom-10 text-white">
-        <p>Frame: {Math.floor(scrollProgress * images.length)} / {images.length}</p>
-      </div>
-    </div>
-  );
-
-  const renderProgressIndicator = () => (
-    <div className="relative w-full h-full bg-[#0A0A0A]">
-      <div className="fixed top-0 left-0 right-0 h-1 bg-white/10">
-        <div 
-          className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all duration-75"
-          style={{ width: `${scrollProgress * 100}%` }}
-        />
-      </div>
-      <div className="fixed bottom-8 right-8 flex items-center gap-4">
-        <div className="relative w-16 h-16">
-          <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="16" fill="none" stroke="white/10" strokeWidth="2" />
-            <circle 
-              cx="18" cy="18" r="16" 
-              fill="none" 
-              stroke="url(#progressGradient)" 
-              strokeWidth="2"
-              strokeDasharray="100"
-              strokeDashoffset={100 - scrollProgress * 100}
-              className="transition-all duration-75"
-            />
-            <defs>
-              <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#ef4444" />
-                <stop offset="50%" stopColor="#eab308" />
-                <stop offset="100%" stopColor="#22c55e" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="h-[200vh] p-10">
-        <h1 className="text-4xl font-bold text-white mb-10">Progress Indicator Demo</h1>
-        <p className="text-gray-400 mb-4">Scroll down to see the progress indicators in action.</p>
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="h-32 bg-white/5 rounded-xl border border-white/10" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  const active = activeSection; 
 
   const renderContent = () => {
-    switch (variant) {
-      case 'scroll-image-zoom-scroll': return renderScrollImageZoom();
-      case 'scroll-image-fade': return renderScrollImageFade();
-      case 'scroll-image-rotate': return renderScrollImageRotate();
-      case 'scroll-image-parallax': return renderScrollImageParallax();
-      case 'scroll-image-blur': return renderScrollImageBlur();
-      case 'scroll-image-grayscale': return renderScrollImageGrayscale();
-      case 'scroll-image-reveal': return renderScrollImageReveal();
-      case 'scroll-image-sticky': return renderScrollImageSticky();
-      case 'scroll-image-grid': return renderScrollImageGrid();
-      case 'scroll-image-sequence': return renderScrollImageSequence();
-      case 'progress-indicator': return renderProgressIndicator();
-      default: return renderScrollImageZoom();
-    }
+      switch(variant) {
+          case 'progress-indicator': return renderProgress();
+          case 'scroll-snap': return renderSnap();
+          case 'scroll-blend': return renderBlend();
+          default: return renderGeneric();
+      }
   };
 
   return (
     <DemoContainer>
-      <ScrollControl isPlaying={isAutoScrolling} onToggle={toggleAutoScroll} />
-      <div ref={containerRef} className="h-full overflow-y-auto relative hide-scrollbar bg-black">
+      <div ref={containerRef} className="w-full h-full relative overflow-hidden">
         {renderContent()}
       </div>
     </DemoContainer>

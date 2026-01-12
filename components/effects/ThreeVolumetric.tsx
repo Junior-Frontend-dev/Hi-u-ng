@@ -17,23 +17,30 @@ export default function ThreeVolumetric() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      console.warn('ThreeVolumetric: Canvas context not available');
+      return;
+    }
 
-    let width = canvas.width = canvas.parentElement?.clientWidth || 300;
-    let height = canvas.height = canvas.parentElement?.clientHeight || 300;
+    let width = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth;
+    let height = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight;
+    
+    if (width === 0 || height === 0) {
+      width = canvas.width = 800;
+      height = canvas.height = 600;
+    }
 
-    // Configuration
     const rayCount = 15;
     const particleCount = 150;
     
-    // State
     const rays = Array.from({ length: rayCount }, () => ({
-      angle: Math.random() * Math.PI * 0.5 + Math.PI * 0.25, // Cone downwards
+      angle: Math.random() * Math.PI * 0.5 + Math.PI * 0.25,
       width: Math.random() * 0.2 + 0.05,
       alpha: Math.random() * 0.1,
       speed: Math.random() * 0.001 + 0.0005,
-      offset: Math.random() * Math.PI * 2 // For oscillation
+      offset: Math.random() * Math.PI * 2
     }));
 
     const particles = Array.from({ length: particleCount }, () => ({
@@ -47,34 +54,29 @@ export default function ThreeVolumetric() {
 
     let time = 0;
     let animationFrameId: number;
+    let isMounted = true;
 
     const render = () => {
-      // Smoothly interpolate source position towards mouse
-      // We assume source is at top, X moves with mouse
+      if (!isMounted) return;
+      
       const sourceX = width * mouseRef.current.x;
-      const sourceY = height * mouseRef.current.y * 0.5 - 100; // Above screen, moves down slightly
+      const sourceY = height * mouseRef.current.y * 0.5 - 100;
 
       ctx.fillStyle = '#050505';
       ctx.fillRect(0, 0, width, height);
 
-      // 1. Draw Background Glow
       const glow = ctx.createRadialGradient(sourceX, sourceY, 0, sourceX, sourceY, width * 0.8);
       glow.addColorStop(0, 'rgba(60, 80, 100, 0.3)');
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Draw Rays
-      ctx.globalCompositeOperation = 'screen'; // Additive blending for light
+      ctx.globalCompositeOperation = 'screen';
       
-      rays.forEach((ray, i) => {
-        // Oscillate ray properties
+      rays.forEach((ray) => {
         const currentAngle = ray.angle + Math.sin(time * ray.speed + ray.offset) * 0.1;
         const currentAlpha = 0.02 + Math.abs(Math.sin(time * ray.speed * 2 + ray.offset)) * 0.05;
         
-        // Calculate triangle points
-        // Tip is at source
-        // Base is calculated by projecting angle downwards
         const rayLength = height * 1.5;
         const x1 = sourceX;
         const y1 = sourceY;
@@ -85,7 +87,6 @@ export default function ThreeVolumetric() {
         const x3 = sourceX + Math.cos(currentAngle + ray.width) * rayLength;
         const y3 = sourceY + Math.sin(currentAngle + ray.width) * rayLength;
 
-        // Draw Ray
         const gradient = ctx.createLinearGradient(x1, y1, (x2+x3)/2, (y2+y3)/2);
         gradient.addColorStop(0, `rgba(200, 220, 255, ${currentAlpha * 2})`);
         gradient.addColorStop(1, 'transparent');
@@ -99,7 +100,6 @@ export default function ThreeVolumetric() {
         ctx.fill();
       });
 
-      // 3. Draw Particles (Dust)
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = 'rgba(200, 220, 255, 0.5)';
       
@@ -108,14 +108,12 @@ export default function ThreeVolumetric() {
         p.y += p.vy;
         p.life += 0.005;
 
-        // Wrap around
         if (p.x < 0) p.x = width;
         if (p.x > width) p.x = 0;
         if (p.y < 0) p.y = height;
         if (p.y > height) p.y = 0;
 
-        // Draw
-        ctx.globalAlpha = Math.abs(Math.sin(p.life * Math.PI)) * 0.5; // Blink
+        ctx.globalAlpha = Math.abs(Math.sin(p.life * Math.PI)) * 0.5;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -127,15 +125,22 @@ export default function ThreeVolumetric() {
     };
 
     const handleResize = () => {
-        width = canvas.width = canvas.parentElement?.clientWidth || 300;
-        height = canvas.height = canvas.parentElement?.clientHeight || 300;
+        if (!canvas.parentElement) return;
+        width = canvas.width = canvas.parentElement.clientWidth || window.innerWidth;
+        height = canvas.height = canvas.parentElement.clientHeight || window.innerHeight;
+        if (width === 0 || height === 0) {
+            width = canvas.width = 800;
+            height = canvas.height = 600;
+        }
     };
     window.addEventListener('resize', handleResize);
+    handleResize();
     render();
 
     return () => {
+        isMounted = false;
         window.removeEventListener('resize', handleResize);
-        cancelAnimationFrame(animationFrameId);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
