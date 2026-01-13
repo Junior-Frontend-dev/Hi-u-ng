@@ -6,6 +6,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const [trail, setTrail] = useState<{ x: number; y: number; id: number }[]>([]);
   const [clickRipples, setClickRipples] = useState<{ x: number; y: number; id: number }[]>([]);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevPosRef = useRef({ x: 0, y: 0 });
 
@@ -15,21 +16,39 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
       const rect = containerRef.current.getBoundingClientRect();
       prevPosRef.current = pos;
       setPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      setIsVisible(true);
     };
+
+    const handleEnter = () => setIsVisible(true);
+    const handleLeave = () => setIsVisible(false);
     
     const el = containerRef.current;
-    if (el) el.addEventListener('mousemove', handleMove);
-    return () => el?.removeEventListener('mousemove', handleMove);
+    if (el) {
+        el.addEventListener('mousemove', handleMove);
+        el.addEventListener('mouseenter', handleEnter);
+        el.addEventListener('mouseleave', handleLeave);
+    }
+    return () => {
+        if (el) {
+            el.removeEventListener('mousemove', handleMove);
+            el.removeEventListener('mouseenter', handleEnter);
+            el.removeEventListener('mouseleave', handleLeave);
+        }
+    };
   }, [pos]);
 
   useEffect(() => {
     if (variant.includes('trail') || variant.includes('emoji')) {
       const interval = setInterval(() => {
-        setTrail(prev => [...prev.slice(-20), { x: pos.x, y: pos.y, id: Date.now() }]);
+        if (isVisible) {
+            setTrail(prev => [...prev.slice(-20), { x: pos.x, y: pos.y, id: Date.now() }]);
+        } else {
+            setTrail([]);
+        }
       }, 50);
       return () => clearInterval(interval);
     }
-  }, [pos, variant]);
+  }, [pos, variant, isVisible]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (variant.includes('ripple')) {
@@ -52,8 +71,8 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const renderCursorHoverMask = () => (
     <div className="relative w-full h-full bg-black overflow-hidden cursor-none" onClick={handleClick}>
       <div 
-        className="absolute w-32 h-32 rounded-full pointer-events-none mix-blend-difference transition-transform"
-        style={{ left: pos.x - 64, top: pos.y - 64, transform: 'scale(1)' }}
+        className={`absolute w-32 h-32 rounded-full pointer-events-none mix-blend-difference transition-all duration-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}
+        style={{ left: pos.x - 64, top: pos.y - 64 }}
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <p className="text-6xl font-bold text-gray-600">HOVER ME</p>
@@ -77,7 +96,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const renderCursorTextReplace = () => (
     <div className="relative w-full h-full bg-neutral-900 cursor-none" onClick={handleClick}>
       <div 
-        className="absolute pointer-events-none text-2xl font-bold text-white mix-blend-difference z-50"
+        className={`absolute pointer-events-none text-2xl font-bold text-white mix-blend-difference z-50 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{ left: pos.x + 20, top: pos.y - 10 }}
       >
         VIEW
@@ -97,7 +116,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const renderCursorImageFloat = () => (
     <div className="relative w-full h-full bg-neutral-100 cursor-none" onClick={handleClick}>
       <div 
-        className="absolute w-48 h-32 rounded-xl overflow-hidden pointer-events-none z-50 shadow-2xl"
+        className={`absolute w-48 h-32 rounded-xl overflow-hidden pointer-events-none z-50 shadow-2xl transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{ left: pos.x + 30, top: pos.y - 16, transform: 'rotate(5deg)' }}
       >
         <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80" alt="" className="w-full h-full object-cover" />
@@ -119,7 +138,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const renderCursorBlendText = () => (
     <div className="relative w-full h-full bg-white cursor-none overflow-hidden" onClick={handleClick}>
       <div 
-        className="absolute w-24 h-24 rounded-full pointer-events-none mix-blend-difference bg-white z-50"
+        className={`absolute w-24 h-24 rounded-full pointer-events-none mix-blend-difference bg-white z-50 transition-all duration-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}
         style={{ left: pos.x - 48, top: pos.y - 48 }}
       />
       <div className="absolute inset-0 flex items-center justify-center flex-wrap p-20 gap-8">
@@ -133,7 +152,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const renderCursorCircleExpand = () => (
     <div className="relative w-full h-full bg-neutral-900 cursor-none" onClick={handleClick}>
       <div 
-        className="absolute pointer-events-none mix-blend-difference z-50"
+        className={`absolute pointer-events-none mix-blend-difference z-50 transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}
         style={{ 
           left: hoveredCard !== null ? '50%' : pos.x - 25, 
           top: hoveredCard !== null ? '50%' : pos.y - 25,
@@ -142,7 +161,6 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
           height: 50,
           borderRadius: '50%',
           backgroundColor: 'white',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center">
@@ -174,7 +192,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
         </div>
       ))}
       <div 
-        className="absolute w-8 h-8 bg-yellow-400 rounded-full pointer-events-none z-50"
+        className={`absolute w-8 h-8 bg-yellow-400 rounded-full pointer-events-none z-50 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{ left: pos.x - 16, top: pos.y - 16 }}
       />
       <div className="absolute inset-0 flex items-center justify-center text-white/30">
@@ -186,7 +204,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
   const renderCursorDirectionArrow = () => (
     <div className="relative w-full h-full bg-neutral-900 cursor-none" onClick={handleClick}>
       <div 
-        className="absolute pointer-events-none text-4xl z-50"
+        className={`absolute pointer-events-none text-4xl z-50 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{ 
           left: pos.x - 16, 
           top: pos.y - 16,
@@ -220,8 +238,6 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
     <div className="relative w-full h-full bg-neutral-900 overflow-hidden cursor-crosshair">
       <div className="absolute inset-0 grid grid-cols-12 gap-4 p-8">
         {[...Array(48)].map((_, i) => {
-           // Calculate distance from mouse for each dot (approximate center position)
-           // This is a simplified version; real grid logic would need exact rects
            return (
              <div key={i} className="flex items-center justify-center">
                 <div 
@@ -230,7 +246,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
                      if (el) {
                         const rect = el.getBoundingClientRect();
                         const containerRect = containerRef.current?.getBoundingClientRect();
-                        if (containerRect) {
+                        if (containerRect && isVisible) {
                             const dotX = rect.left - containerRect.left + 6;
                             const dotY = rect.top - containerRect.top + 6;
                             const dx = pos.x - dotX;
@@ -245,6 +261,9 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
                                 el.style.transform = 'none';
                                 el.style.backgroundColor = '#525252';
                             }
+                        } else {
+                            el.style.transform = 'none';
+                            el.style.backgroundColor = '#525252';
                         }
                      }
                   }}
@@ -261,16 +280,18 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
         <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-4 h-4 bg-white rounded-full relative z-10" id="tether-anchor" />
         </div>
-        <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            <line 
-                x1="50%" y1="50%" 
-                x2={pos.x} y2={pos.y} 
-                stroke="white" strokeWidth="2" strokeDasharray="5,5" 
-                className="opacity-50"
-            />
-        </svg>
+        {isVisible && (
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <line 
+                    x1="50%" y1="50%" 
+                    x2={pos.x} y2={pos.y} 
+                    stroke="white" strokeWidth="2" strokeDasharray="5,5" 
+                    className="opacity-50"
+                />
+            </svg>
+        )}
         <div 
-            className="absolute w-8 h-8 border-2 border-white rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            className={`absolute w-8 h-8 border-2 border-white rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
             style={{ left: pos.x, top: pos.y }}
         />
     </div>
@@ -286,7 +307,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
             ))}
         </div>
         <div 
-            className="absolute w-64 h-64 bg-white rounded-full mix-blend-difference pointer-events-none -translate-x-1/2 -translate-y-1/2 z-50"
+            className={`absolute w-64 h-64 bg-white rounded-full mix-blend-difference pointer-events-none -translate-x-1/2 -translate-y-1/2 z-50 transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
             style={{ left: pos.x, top: pos.y }}
         />
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none mix-blend-difference text-white">
@@ -301,7 +322,7 @@ export default function ImplCursorExtras({ variant }: { variant: string }) {
             <h1 className="text-[20vw] font-black select-none">VIDEO</h1>
         </div>
         <div 
-            className="absolute w-64 h-64 rounded-full pointer-events-none overflow-hidden -translate-x-1/2 -translate-y-1/2 z-50 border-4 border-white"
+            className={`absolute w-64 h-64 rounded-full pointer-events-none overflow-hidden -translate-x-1/2 -translate-y-1/2 z-50 border-4 border-white transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
             style={{ left: pos.x, top: pos.y }}
         >
             <video 

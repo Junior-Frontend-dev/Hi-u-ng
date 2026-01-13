@@ -11,6 +11,11 @@ export default function CursorInertia() {
       mouse.current = { x: e.clientX, y: e.clientY };
     };
 
+    const onMouseLeave = () => {
+      // Reset position to prevent ghost effect on re-entry
+      pos.current = { x: -1000, y: -1000 };
+    };
+
     const animate = () => {
         // Heavy Lerp (0.05)
         pos.current.x += (mouse.current.x - pos.current.x) * 0.05;
@@ -27,10 +32,12 @@ export default function CursorInertia() {
     };
     
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseleave', onMouseLeave);
     const rafId = requestAnimationFrame(animate);
 
     return () => {
         window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseleave', onMouseLeave);
         cancelAnimationFrame(rafId);
     };
   }, []);

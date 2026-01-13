@@ -9,8 +9,17 @@ export default function CursorScale() {
     const onMouseMove = (e: MouseEvent) => {
       setPos({ x: e.clientX, y: e.clientY });
     };
+
+    const onMouseLeave = () => {
+      setPos({ x: -1000, y: -1000 });
+    };
+
     window.addEventListener('mousemove', onMouseMove);
-    return () => window.removeEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseleave', onMouseLeave);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseleave', onMouseLeave);
+    };
   }, []);
 
   return (

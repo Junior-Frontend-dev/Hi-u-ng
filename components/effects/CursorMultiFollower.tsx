@@ -7,11 +7,16 @@ export default function CursorMultiFollower() {
   const positions = useRef<{x: number, y: number}[]>([]);
 
   useEffect(() => {
-    // Init positions
-    positions.current = Array(5).fill({ x: 0, y: 0 });
+    // Init positions off-screen
+    positions.current = Array(5).fill({ x: -1000, y: -1000 });
 
     const onMouseMove = (e: MouseEvent) => {
       mouse.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onMouseLeave = () => {
+      // Reset all positions to prevent ghost effect
+      positions.current = Array(5).fill({ x: -1000, y: -1000 });
     };
 
     const animate = () => {
@@ -34,10 +39,12 @@ export default function CursorMultiFollower() {
     };
 
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseleave', onMouseLeave);
     const rafId = requestAnimationFrame(animate);
 
     return () => {
         window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseleave', onMouseLeave);
         cancelAnimationFrame(rafId);
     };
   }, []);

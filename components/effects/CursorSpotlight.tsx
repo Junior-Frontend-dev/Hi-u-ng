@@ -15,6 +15,8 @@ export default function CursorSpotlight() {
 
   const handleMouseLeave = () => {
     setOpacity(0);
+    // Reset position to prevent spotlight staying at edge
+    setPos({ x: -1000, y: -1000 });
   };
 
   return (

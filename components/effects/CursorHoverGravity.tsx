@@ -29,7 +29,14 @@ export default function CursorHoverGravity() {
         mouse.x = e.clientX - rect.left;
         mouse.y = e.clientY - rect.top;
     };
+
+    const onMouseLeave = () => {
+        mouse.x = -1000;
+        mouse.y = -1000;
+    };
+
     canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseleave', onMouseLeave);
 
     const update = () => {
         ctx.clearRect(0, 0, width, height);
@@ -71,6 +78,7 @@ export default function CursorHoverGravity() {
 
     return () => {
         canvas.removeEventListener('mousemove', onMouseMove);
+        canvas.removeEventListener('mouseleave', onMouseLeave);
         window.removeEventListener('resize', resize);
         cancelAnimationFrame(rafId);
     };

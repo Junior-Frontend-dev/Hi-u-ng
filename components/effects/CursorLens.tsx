@@ -6,11 +6,9 @@ export default function CursorLens() {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    // Calculate percentages for background position
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
-    // Store exact pixels for lens position
     setPos({ 
         xPx: e.clientX - rect.left, 
         yPx: e.clientY - rect.top,
@@ -19,11 +17,16 @@ export default function CursorLens() {
     });
   };
 
+  const handleMouseLeave = () => {
+    setPos({ xPx: -1000, yPx: -1000, xPct: 0, yPct: 0 });
+  };
+
   return (
     <DemoContainer>
       <div 
         className="h-full w-full bg-neutral-900 relative overflow-hidden group cursor-none"
         onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Base Image */}
         <div 

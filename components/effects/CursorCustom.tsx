@@ -4,13 +4,26 @@ import { DemoContainer } from '../DemoContainer';
 export default function CursorCustom() {
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [hovering, setHovering] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       setPos({ x: e.clientX, y: e.clientY });
+      setIsVisible(true);
     };
+    
+    const onMouseLeave = () => setIsVisible(false);
+    const onMouseEnter = () => setIsVisible(true);
+
     window.addEventListener('mousemove', onMouseMove);
-    return () => window.removeEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseleave', onMouseLeave);
+    document.addEventListener('mouseenter', onMouseEnter);
+
+    return () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseleave', onMouseLeave);
+        document.removeEventListener('mouseenter', onMouseEnter);
+    };
   }, []);
 
   return (
@@ -18,7 +31,7 @@ export default function CursorCustom() {
       
       {/* Custom Cursor Element */}
       <div 
-        className="fixed top-0 left-0 pointer-events-none z-50 mix-blend-difference"
+        className={`fixed top-0 left-0 pointer-events-none z-50 mix-blend-difference transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0)` }}
       >
         <div 

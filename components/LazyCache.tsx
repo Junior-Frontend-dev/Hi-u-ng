@@ -253,6 +253,16 @@ const effectComponentMap: EffectComponentMap = {
   'loader-blur': () => import('./effects/ImplLoader'),
   'loader-progress': () => import('./effects/ImplLoader'),
   'loader-skeleton': () => import('./effects/ImplLoader'),
+  'scroll-image-zoom-scroll': () => import('./effects/ScrollImageZoom'),
+  'scroll-image-fade': () => import('./effects/ScrollImageBasic'),
+  'scroll-image-rotate': () => import('./effects/ScrollImageBasic'),
+  'scroll-image-parallax': () => import('./effects/ScrollImageBasic'),
+  'scroll-image-blur': () => import('./effects/ScrollImageBasic'),
+  'scroll-image-grayscale': () => import('./effects/ScrollImageBasic'),
+  'scroll-image-reveal': () => import('./effects/ScrollSlicing'),
+  'scroll-image-sticky': () => import('./effects/ScrollStacking'),
+  'scroll-image-grid': () => import('./effects/ScrollImageGrid'),
+  'scroll-image-sequence': () => import('./effects/ScrollImageSequence'),
 };
 
 export function LazyCacheProvider({ children }: { children: ReactNode }) {

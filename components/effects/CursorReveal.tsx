@@ -6,12 +6,19 @@ export default function CursorReveal() {
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
-      // Get relative position within the container if possible, or just page for full screen demo
-      // Here we assume full screen demo container logic, but let's just use clientX/Y and map to fixed
       setPos({ x: e.clientX, y: e.clientY });
     };
+
+    const onMouseLeave = () => {
+      setPos({ x: -1000, y: -1000 });
+    };
+
     window.addEventListener('mousemove', onMouseMove);
-    return () => window.removeEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseleave', onMouseLeave);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseleave', onMouseLeave);
+    };
   }, []);
 
   return (

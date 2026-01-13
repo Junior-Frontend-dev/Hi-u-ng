@@ -24,7 +24,19 @@ export default function CursorPhysics() {
         mouse.x = e.clientX - rect.left;
         mouse.y = e.clientY - rect.top;
     };
+
+    const onMouseLeave = () => {
+        // Reset ball to center when mouse leaves
+        ball.x = width / 2;
+        ball.y = height / 2;
+        ball.vx = 0;
+        ball.vy = 0;
+        mouse.x = width / 2;
+        mouse.y = height / 2;
+    };
+
     canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseleave', onMouseLeave);
 
     const update = () => {
         // Spring to mouse
@@ -79,6 +91,7 @@ export default function CursorPhysics() {
 
     return () => {
         canvas.removeEventListener('mousemove', onMouseMove);
+        canvas.removeEventListener('mouseleave', onMouseLeave);
         window.removeEventListener('resize', resize);
         cancelAnimationFrame(rafId);
     };

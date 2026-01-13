@@ -8,14 +8,33 @@ export default function CursorFollower() {
   // State for animation loop
   const mouse = useRef({ x: 0, y: 0 });
   const follower = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
+  const isVisible = useRef(false);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       mouse.current = { x: e.clientX, y: e.clientY };
+      isVisible.current = true;
       
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+        cursorRef.current.style.opacity = '1';
       }
+      if (followerRef.current) {
+          followerRef.current.style.opacity = '1';
+      }
+    };
+
+    const onMouseLeave = () => {
+        isVisible.current = false;
+        // Reset positions to prevent ghost effect on re-entry
+        mouse.current = { x: -1000, y: -1000 };
+        follower.current = { x: -1000, y: -1000, vx: 0, vy: 0 };
+        if (cursorRef.current) cursorRef.current.style.opacity = '0';
+        if (followerRef.current) followerRef.current.style.opacity = '0';
+    };
+
+    const onMouseEnter = () => {
+      isVisible.current = true;
     };
 
     let rafId: number;
@@ -47,10 +66,12 @@ export default function CursorFollower() {
     };
 
     window.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseleave', onMouseLeave);
     rafId = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseleave', onMouseLeave);
       cancelAnimationFrame(rafId);
     };
   }, []);
@@ -60,13 +81,13 @@ export default function CursorFollower() {
       {/* Dot (Instant) */}
       <div 
         ref={cursorRef}
-        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-50 -ml-1 -mt-1 mix-blend-exclusion"
+        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-50 -ml-1 -mt-1 mix-blend-exclusion transition-opacity duration-300 opacity-0"
       />
       
       {/* Ring (Jelly Physics) */}
       <div 
         ref={followerRef}
-        className="fixed top-0 left-0 w-10 h-10 border-2 border-white rounded-full pointer-events-none z-40 -ml-5 -mt-5 mix-blend-exclusion will-change-transform"
+        className="fixed top-0 left-0 w-10 h-10 border-2 border-white rounded-full pointer-events-none z-40 -ml-5 -mt-5 mix-blend-exclusion will-change-transform transition-opacity duration-300 opacity-0"
       />
 
       <div className="h-full w-full flex items-center justify-center bg-black">

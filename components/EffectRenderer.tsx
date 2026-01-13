@@ -31,7 +31,17 @@ const MANUAL_MAP: Record<string, string> = {
     'three-particle-terrain': 'ThreeTerrain',
     'brand-logo-morph': 'BrandLogoMorph',
     'ux-micro-interaction': 'UxMicroLike',
-    'experimental-noise-field': 'ExperimentalNoise'
+    'experimental-noise-field': 'ExperimentalNoise',
+    'scroll-image-zoom-scroll': 'ScrollImageZoom',
+    'scroll-image-fade': 'ScrollImageBasic',
+    'scroll-image-rotate': 'ScrollImageBasic',
+    'scroll-image-parallax': 'ScrollImageBasic',
+    'scroll-image-blur': 'ScrollImageBasic',
+    'scroll-image-grayscale': 'ScrollImageBasic',
+    'scroll-image-reveal': 'ScrollSlicing',
+    'scroll-image-sticky': 'ScrollStacking',
+    'scroll-image-grid': 'ScrollImageGrid',
+    'scroll-image-sequence': 'ScrollImageSequence'
 };
 
 const toPascalCase = (str: string) => {

@@ -30,7 +30,13 @@ export default function CursorTrailingParticles() {
             });
         }
     };
+
+    const onMouseLeave = () => {
+        particles.length = 0;
+    };
+
     canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseleave', onMouseLeave);
 
     const animate = () => {
         ctx.clearRect(0, 0, width, height);
@@ -64,6 +70,7 @@ export default function CursorTrailingParticles() {
 
     return () => {
         canvas.removeEventListener('mousemove', onMouseMove);
+        canvas.removeEventListener('mouseleave', onMouseLeave);
         window.removeEventListener('resize', resize);
         cancelAnimationFrame(rafId);
     };

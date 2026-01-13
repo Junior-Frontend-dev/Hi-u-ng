@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DemoContainer } from '../DemoContainer';
 
 const Particle: React.FC<{ x: number, y: number, mouseX: number, mouseY: number }> = ({ x, y, mouseX, mouseY }) => {
-    // Calculate distance
     const dx = mouseX - x;
     const dy = mouseY - y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     
-    // Attraction force (stronger when closer, but clamped)
     const maxDist = 200;
     const strength = Math.max(0, (maxDist - dist) / maxDist);
     
-    // Move towards mouse based on strength
     const moveX = strength * dx * 0.5;
     const moveY = strength * dy * 0.5;
 
@@ -31,9 +28,9 @@ const Particle: React.FC<{ x: number, y: number, mouseX: number, mouseY: number 
 export default function CursorGravity() {
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [particles, setParticles] = useState<{x: number, y: number}[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-      // Create grid of particles
       const parts = [];
       for(let i=0; i<10; i++) {
           for(let j=0; j<10; j++) {
@@ -43,19 +40,26 @@ export default function CursorGravity() {
       setParticles(parts);
 
       const onMouseMove = (e: MouseEvent) => {
-          // Ideally relative to container
-          const rect = document.getElementById('gravity-container')?.getBoundingClientRect();
-          if(rect) {
-              setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-          }
+          if(!containerRef.current) return;
+          const rect = containerRef.current.getBoundingClientRect();
+          setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
       };
+
+      const onMouseLeave = () => {
+        setMousePos({ x: -1000, y: -1000 });
+      };
+
       window.addEventListener('mousemove', onMouseMove);
-      return () => window.removeEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseleave', onMouseLeave);
+      return () => {
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseleave', onMouseLeave);
+      };
   }, []);
 
   return (
     <DemoContainer>
-      <div id="gravity-container" className="h-full w-full bg-black relative overflow-hidden">
+      <div ref={containerRef} className="h-full w-full bg-black relative overflow-hidden">
         {particles.map((p, i) => (
             <Particle key={i} x={p.x} y={p.y} mouseX={mousePos.x} mouseY={mousePos.y} />
         ))}
