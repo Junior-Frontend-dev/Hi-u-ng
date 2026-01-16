@@ -2,6 +2,111 @@ import React from 'react';
 import { DemoContainer } from '../DemoContainer';
 import { Loader2, RefreshCw, Zap } from 'lucide-react';
 
+const DoomGlitchLoader = () => {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let frameCount = 0;
+    
+    // Configuration for "Mạnh" (Intensity)
+    const GLITCH_INTENSITY = 0.4; // Probability of glitch per frame
+    const RGB_SHIFT_AMOUNT = 4;   // Max pixel shift for RGB
+    const SLICE_HEIGHT = 5;       // Height of horizontal slices
+    const SLICE_OFFSET = 15;      // Max horizontal offset for slices
+
+    const render = () => {
+      frameCount++;
+      
+      // Set canvas size (optimize: do this on resize only if needed, but for loader safe here)
+      canvas.width = 300;
+      canvas.height = 100;
+      
+      // Clear
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Base Text Settings
+      ctx.font = 'italic 900 48px "Inter", sans-serif'; // Brutal font
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const text = 'LOADING';
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      // 1. Draw Red Channel (Left Shift)
+      if (Math.random() < GLITCH_INTENSITY) {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+        ctx.fillText(text, cx - (Math.random() * RGB_SHIFT_AMOUNT), cy - (Math.random() * RGB_SHIFT_AMOUNT));
+      }
+
+      // 2. Draw Blue Channel (Right Shift)
+      if (Math.random() < GLITCH_INTENSITY) {
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+        ctx.fillText(text, cx + (Math.random() * RGB_SHIFT_AMOUNT), cy + (Math.random() * RGB_SHIFT_AMOUNT));
+      }
+
+      // 3. Draw White Channel (Main)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, cx, cy);
+
+      // 4. "Doom" Slicing / Tearing Effect
+      // "Bớt lag" -> We manipulate pixels or use clipping regions. 
+      // Clipping is faster than getImageData for simple tearing.
+      const slices = Math.floor(canvas.height / SLICE_HEIGHT);
+      
+      for (let i = 0; i < slices; i++) {
+        // Randomly offset some slices
+        if (Math.random() < 0.1) { // 10% of slices glitch
+          const y = i * SLICE_HEIGHT;
+          const offset = (Math.random() - 0.5) * SLICE_OFFSET * 2;
+          
+          // Grab the slice from the canvas we just drew
+          // Note: readback is slow, but for small loader size (300x100) it's acceptable.
+          // For MAX speed ("bớt lag"), we might skip this or use drawImage with source rect.
+          // Using drawImage(canvas, ...) is better.
+          
+          ctx.drawImage(
+            canvas, 
+            0, y, canvas.width, SLICE_HEIGHT, // Source
+            offset, y, canvas.width, SLICE_HEIGHT // Destination
+          );
+        }
+      }
+
+      // 5. Random Noise Blocks (Rects)
+      if (Math.random() < 0.2) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+        const blockX = Math.random() * canvas.width;
+        const blockY = Math.random() * canvas.height;
+        const blockW = Math.random() * 50;
+        const blockH = Math.random() * 5;
+        ctx.fillRect(blockX, blockY, blockW, blockH);
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      className="w-[300px] h-[100px]" // Explicit size to prevent layout shift
+    />
+  );
+};
+
 export default function ImplLoader({ variant }: { variant?: string }) {
   const [progress, setProgress] = React.useState(0);
 
@@ -56,15 +161,7 @@ export default function ImplLoader({ variant }: { variant?: string }) {
         );
 
       case 'loader-glitch':
-        return (
-          <div className="relative group">
-            <h2 className="text-4xl font-black text-white relative z-10 tracking-tighter italic">
-              LOADING
-              <span className="absolute inset-0 text-red-500 -translate-x-1 translate-y-1 opacity-50 mix-blend-screen animate-pulse">LOADING</span>
-              <span className="absolute inset-0 text-blue-500 translate-x-1 -translate-y-1 opacity-50 mix-blend-screen animate-pulse delay-75">LOADING</span>
-            </h2>
-          </div>
-        );
+        return <DoomGlitchLoader />;
 
       case 'loader-skeleton':
         return (
